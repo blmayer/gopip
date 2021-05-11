@@ -87,20 +87,20 @@ func install(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: Clean pack files (to free memory)
-
-	// Upload zip or save to mounted volume
-	// The session the S3 Uploader will use
-	sess := session.Must(session.NewSession())
-
-	// Create an uploader with the session and default options
-	uploader := s3manager.NewUploader(sess)
-
 	f, err := os.Open(path + ".zip")
 	if err != nil {
 		log.Printf("failed to open %q, %v\n", path, err)
 		http.Error(w, "open zip "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Println("uploading")
+	// Upload zip or save to mounted volume
+	// The session the S3 Uploader will use
+	sess := session.Must(session.NewSession())
+
+	// Create an uploader with the session and default options
+	uploader := s3manager.NewUploader(sess)
 
 	// Upload the file to S3.
 	result, err := uploader.Upload(&s3manager.UploadInput{
@@ -114,7 +114,7 @@ func install(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "upload "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Printf("file uploaded to, %s\n", result.Location)
+	log.Printf("file uploaded to %s\n", result.Location)
 
-	w.Write([]byte(result.Location + "\n"))
+	http.Redirect(w, r, result.Location, http.StatusTemporaryRedirect)
 }
