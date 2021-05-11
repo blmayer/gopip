@@ -1,6 +1,6 @@
 FROM golang:1.16 as build
 
-ADD main.go /root/
+ADD . /root/
 
 RUN cd /root && go build -v main.go
 
