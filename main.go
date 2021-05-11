@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 
@@ -49,34 +50,39 @@ func main() {
 }
 
 func install(w http.ResponseWriter, r *http.Request) {
-	packName := r.URL.Path[1:]
+	packName, err := url.PathUnescape(r.URL.Path[1:])
+	if err != nil {
+		log.Println("URL decode", err)
+		return
+	}
 
 	path := "/tmp/" + packName
-	err := os.Mkdir(path, os.ModeDir)
+	err = os.Mkdir(path, os.ModeDir)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	defer cancel()
 	log.Println("installing", packName, "into", path)
 	cmd := exec.Command("pip", "install", "--isolated", packName, "-t", path)
-
 	cmd.Stdout = os.Stdout
 
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
+		http.Error(w, "pip install "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	log.Println("zipping files")
 	cmd = exec.Command("zip", path+".zip", "-r", path)
-
 	cmd.Stdout = os.Stdout
 
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
+		http.Error(w, "zip "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -92,6 +98,7 @@ func install(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(path + ".zip")
 	if err != nil {
 		log.Printf("failed to open %q, %v\n", path, err)
+		http.Error(w, "open zip "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -104,10 +111,10 @@ func install(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Printf("failed to upload file, %v\n", err)
+		http.Error(w, "upload "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	log.Printf("file uploaded to, %s\n", result.Location)
 
-	w.Write([]byte(result.Location))
-	cancel()
+	w.Write([]byte(result.Location + "\n"))
 }
