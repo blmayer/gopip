@@ -1,12 +1,15 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 var (
@@ -58,30 +61,53 @@ func install(w http.ResponseWriter, r *http.Request) {
 	log.Println("installing", packName, "into", path)
 	cmd := exec.Command("pip", "install", "--isolated", packName, "-t", path)
 
-	var pipOut bytes.Buffer
-	cmd.Stdout = &pipOut
+	cmd.Stdout = os.Stdout
 
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	log.Println("zipping files")
 	cmd = exec.Command("zip", path+".zip", "-r", path)
-	var zipOut bytes.Buffer
-	cmd.Stdout = &zipOut
+
+	cmd.Stdout = os.Stdout
 
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	// TODO: Clean pack files (to free memory)
 
-	// Read zip and save
-
 	// Upload zip or save to mounted volume
+	// The session the S3 Uploader will use
+	sess := session.Must(session.NewSession())
 
-	w.Write(append(pipOut.Bytes(), zipOut.Bytes()...))
+	// Create an uploader with the session and default options
+	uploader := s3manager.NewUploader(sess)
+
+	f, err := os.Open(path + ".zip")
+	if err != nil {
+		log.Printf("failed to open %q, %v\n", path, err)
+		return
+	}
+
+	// Upload the file to S3.
+	result, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String("gopip"),
+		Key:    aws.String(packName + ".zip"),
+		Body:   f,
+		ACL:    aws.String("public-read"),
+	})
+	if err != nil {
+		log.Printf("failed to upload file, %v\n", err)
+		return
+	}
+	log.Printf("file uploaded to, %s\n", result.Location)
+
+	w.Write([]byte(result.Location))
 	cancel()
 }
