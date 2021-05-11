@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -50,22 +51,30 @@ func main() {
 }
 
 func install(w http.ResponseWriter, r *http.Request) {
-	packName, err := url.PathUnescape(r.URL.Path[1:])
+	switch r.URL.Path {
+	case "/", "/favicon.ico", "/index.html":
+		w.Write([]byte("<p>Add package name to URL</p>"))
+		return
+	}
+
+	pack, err := url.PathUnescape(r.URL.Path[1:])
 	if err != nil {
 		log.Println("URL decode", err)
 		return
 	}
+	args := append([]string{"install", "--isolated"}, strings.Fields(pack)...)
 
-	path := "/tmp/" + packName
-	err = os.Mkdir(path, os.ModeDir)
+	path, err := os.MkdirTemp("", "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	args = append(args, []string{"-t", path}...)
 
 	defer cancel()
-	log.Println("installing", packName, "into", path)
-	cmd := exec.Command("pip", "install", "--isolated", packName, "-t", path)
+
+	log.Println("running", args)
+	cmd := exec.Command("pip", args...)
 	cmd.Stdout = os.Stdout
 
 	err = cmd.Run()
@@ -76,7 +85,8 @@ func install(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("zipping files")
-	cmd = exec.Command("zip", path+".zip", "-r", path)
+	zipFile := path + ".zip"
+	cmd = exec.Command("zip", zipFile, "-r", path)
 	cmd.Stdout = os.Stdout
 
 	err = cmd.Run()
@@ -87,9 +97,9 @@ func install(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: Clean pack files (to free memory)
-	f, err := os.Open(path + ".zip")
+	f, err := os.Open(zipFile)
 	if err != nil {
-		log.Printf("failed to open %q, %v\n", path, err)
+		log.Printf("failed to open %q, %v\n", zipFile, err)
 		http.Error(w, "open zip "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -105,7 +115,7 @@ func install(w http.ResponseWriter, r *http.Request) {
 	// Upload the file to S3.
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String("gopip"),
-		Key:    aws.String(packName + ".zip"),
+		Key:    aws.String(zipFile),
 		Body:   f,
 		ACL:    aws.String("public-read"),
 	})
