@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 )
 
 var (
@@ -36,6 +37,7 @@ func main() {
 func install(w http.ResponseWriter, r *http.Request) {
 	count++
 	out := fmt.Sprintln("request", count)
+	time.Sleep(5 * time.Second)
 	w.Write([]byte(out))
 	cancel()
 }
