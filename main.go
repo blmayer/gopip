@@ -22,6 +22,10 @@ func main() {
 		port = "8080"
 	}
 
+	srv := &http.Server{
+		Addr: ":" + port,
+	}
+
 	http.HandleFunc("/", install)
 
 	go func() {
@@ -32,6 +36,13 @@ func main() {
 	}()
 
 	<-ctx.Done() // wait for the signal to gracefully shutdown the server
+
+	// gracefully shutdown the server:
+	// waiting indefinitely for connections to return to idle and then shut down.
+	err := srv.Shutdown(context.Background())
+	if err != nil {
+		println(err)
+	}
 }
 
 func install(w http.ResponseWriter, r *http.Request) {
