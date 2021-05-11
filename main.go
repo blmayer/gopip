@@ -50,5 +50,5 @@ func install(w http.ResponseWriter, r *http.Request) {
 	out := fmt.Sprintln("request", count)
 	time.Sleep(5 * time.Second)
 	w.Write([]byte(out))
-	cancel()
+	// cancel()
 }
