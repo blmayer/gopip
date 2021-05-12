@@ -115,7 +115,7 @@ func install(w http.ResponseWriter, r *http.Request) {
 	// Upload the file to S3.
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String("gopip"),
-		Key:    aws.String(zipFile),
+		Key:    aws.String(strings.TrimPrefix(zipFile, "/tmp/")),
 		Body:   f,
 		ACL:    aws.String("public-read"),
 	})
