@@ -51,17 +51,35 @@ func main() {
 }
 
 func install(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/", "/favicon.ico", "/index.html":
-		w.Write([]byte("<p>Add package name to URL</p>"))
+	// Two ways of getting the package name
+	var pack string
+	var err error
+
+	if r.Method == http.MethodGet {
+		switch r.URL.Path {
+		case "/favicon.ico":
+			http.NotFound(w, r)
+			return
+		case "/", "/index.html":
+			w.Write([]byte(index))
+			return
+		}
+
+		// Get from URL
+		pack, err = url.PathUnescape(r.URL.Path[1:])
+	} else if r.Method == http.MethodPost {
+		// Get from form
+		err = r.ParseForm()
+		if err != nil {
+			log.Println("Parse Form", err)
+		}
+		pack = r.Form.Get("package")
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	pack, err := url.PathUnescape(r.URL.Path[1:])
-	if err != nil {
-		log.Println("URL decode", err)
-		return
-	}
 	args := append([]string{"install", "--isolated"}, strings.Fields(pack)...)
 
 	path, err := os.MkdirTemp("", "")
@@ -71,6 +89,7 @@ func install(w http.ResponseWriter, r *http.Request) {
 	}
 	args = append(args, []string{"-t", path}...)
 
+	// From now on the server is invalidated
 	defer cancel()
 
 	log.Println("running", args)
@@ -126,5 +145,5 @@ func install(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("file uploaded to %s\n", result.Location)
 
-	http.Redirect(w, r, result.Location, http.StatusTemporaryRedirect)
+	w.Write(successPage(result.Location))
 }
