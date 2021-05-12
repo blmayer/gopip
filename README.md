@@ -12,7 +12,12 @@ docker build -t <NAME> .
 
 ## Running
 
-Run 
+**Recommendation:** Use cloud run, this repo has a cloudbuild yaml file that
+builds and deploys new versions after a push. It is convenient, and some
+features like isolation and scalability come alongside, see the notes section
+for more details.
+
+But if you want to use it on a VM or local machine you can run: 
 
 ```
 docker run
