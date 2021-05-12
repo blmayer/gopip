@@ -17,6 +17,8 @@ import (
 var (
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	count = 0
 )
 
 func main() {
@@ -55,6 +57,12 @@ func install(w http.ResponseWriter, r *http.Request) {
 	var pack string
 	var err error
 
+	if count > 0 {
+		http.Error(w, "<p>Not first request!</p>", http.StatusTooManyRequests)
+		cancel()
+		return
+	}
+
 	if r.Method == http.MethodGet {
 		switch r.URL.Path {
 		case "/favicon.ico":
@@ -91,6 +99,7 @@ func install(w http.ResponseWriter, r *http.Request) {
 
 	// From now on the server is invalidated
 	defer cancel()
+	count++
 
 	log.Println("running", args)
 	cmd := exec.Command("pip", args...)
