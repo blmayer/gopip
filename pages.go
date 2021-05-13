@@ -1,14 +1,38 @@
 package main
 
-const index = `<!DOCTYPE html>
+const start = `<!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Python package installer</title>
+        <title>Python package builder</title>
         <meta charset="utf-8"/>
+        <meta name="author" content="blmayer"/>
     </head>
-    <body>
+    <style>
+        body {
+            margin: 60px auto;
+            max-width: 800px;
+        }
+        footer {
+            margin-top: 80px;
+        }
+    </style>
+    <body>`
+
+const end = `
+        <footer>
+            <hr>
+            <small>
+                The code for this project is available here:
+                <a href="https://github.com/blmayer/gopip">GitHub</a>.
+            </small>
+        </footer>
+    </body>
+</html>`
+
+const index = start + `
+        <h3>Python 3 package builder</h3>
         <p>
-            You can use the package name in the URL for simple names:
+            You can use the package name in the URL for simple names eg.
             <kbd>https://gopip-vjz2keikqq-uc.a.run.app/requests</kbd>
         </p>
         <p>
@@ -16,6 +40,7 @@ const index = `<!DOCTYPE html>
             <kbd>git+https://github.com/httpie/httpie.git#egg=httpie</kbd>
             use the form below.
         </p>
+        <br>
         <p>
             <em>Note:</em> Separate packages by a space character.
         </p>
@@ -24,13 +49,23 @@ const index = `<!DOCTYPE html>
             <input name="package" size="40" autofocus>
             <input type="submit">
         </form>
-    </body>
-</html>`
+` + end
 
 func successPage(url string) []byte {
 	return []byte(
-		`<p>
-            Success! Get your package <a href="` + url + `">here</a>.
-        </p>`,
+		start + `
+        <h3>Success!</h3>
+        <p>
+            Please find your package <a href="` + url + `">here</a>.
+        </p>
+        <details>
+            <summary>Notes</summary>
+            <p>This package won't be available for long.</p>
+            <p>
+                The resulting zip archive will contain the folder
+                <kbd>tmp/</kbd> when decompressed, and inside, a folder
+                with a funny name that has the actual package contents.
+            </p>
+        </details>` + end,
 	)
 }
