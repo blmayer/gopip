@@ -103,7 +103,6 @@ func install(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("running", args)
 	cmd := exec.Command("pip", args...)
-	cmd.Stdout = os.Stdout
 
 	err = cmd.Run()
 	if err != nil {
@@ -115,7 +114,6 @@ func install(w http.ResponseWriter, r *http.Request) {
 	log.Println("zipping files")
 	zipFile := path + ".zip"
 	cmd = exec.Command("zip", zipFile, "-r", path)
-	cmd.Stdout = os.Stdout
 
 	err = cmd.Run()
 	if err != nil {
