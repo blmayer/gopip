@@ -44,28 +44,19 @@ const index = start + `
         <p>
             <em>Note:</em> Separate packages by a space character.
         </p>
-        <form action="/index.html" method="POST">
+        <form action="/package.zip" method="POST" download>
             <label for="package">Insert package name(s):</label>
             <input name="package" size="40" autofocus>
             <input type="submit">
         </form>
 ` + end
 
-func successPage(url string) []byte {
-	return []byte(
-		start + `
-        <h3>Success!</h3>
-        <p>
-            Please find your package <a href="` + url + `">here</a>.
-        </p>
+func errorPage(err, detail string) []byte {
+	return []byte(start + `
+        <h3>Failure!</h3>
         <details>
-            <summary>Notes</summary>
-            <p>This package won't be available for long.</p>
-            <p>
-                The resulting zip archive will contain the folder
-                <kbd>tmp/</kbd> when decompressed, and inside, a folder
-                with a funny name that has the actual package contents.
-            </p>
+            <summary>` + err + `:</summary>
+            <p>` + detail + `</p>
         </details>` + end,
 	)
 }

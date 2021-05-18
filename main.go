@@ -2,16 +2,13 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 var (
@@ -45,7 +42,8 @@ func main() {
 	<-ctx.Done() // wait for the signal to gracefully shutdown the server
 
 	// gracefully shutdown the server:
-	// waiting indefinitely for connections to return to idle and then shut down.
+	// waiting indefinitely for connections to return to idle and
+	// then shut down.
 	err := srv.Shutdown(context.Background())
 	if err != nil {
 		log.Println(err)
@@ -58,7 +56,8 @@ func install(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if count > 0 {
-		http.Error(w, "<p>Not first request!</p>", http.StatusTooManyRequests)
+		w.WriteHeader(http.StatusTooManyRequests)
+		w.Write(errorPage("Error", "Not first request!"))
 		cancel()
 		return
 	}
@@ -84,15 +83,19 @@ func install(w http.ResponseWriter, r *http.Request) {
 		pack = r.Form.Get("package")
 	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errorPage("parse form error", err.Error()))
 		return
 	}
 
-	args := append([]string{"install", "--isolated"}, strings.Fields(pack)...)
+	args := []string{"install", "--isolated"}
+	args = append(args, strings.Fields(pack)...)
 
-	path, err := os.MkdirTemp("", "")
+	path := "/tmp/package"
+	err = os.Mkdir(path, os.ModeDir)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errorPage("", err.Error()))
 		return
 	}
 	args = append(args, []string{"-t", path}...)
@@ -107,50 +110,42 @@ func install(w http.ResponseWriter, r *http.Request) {
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "pip install "+err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errorPage("pip install error", err.Error()))
 		return
 	}
 
 	log.Println("zipping files")
-	zipFile := path + ".zip"
-	cmd = exec.Command("zip", zipFile, "-r", path)
+	zipFile := "package.zip"
 
+	cmd = exec.Command("zip", zipFile, "-r", path[5:])
+	cmd.Dir = "/tmp"
 	err = cmd.Run()
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "zip "+err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errorPage("zip error", err.Error()))
 		return
 	}
 
-	// TODO: Clean pack files (to free memory)
-	f, err := os.Open(zipFile)
+	f, err := os.Open("tmp/" + zipFile)
 	if err != nil {
 		log.Printf("failed to open %q, %v\n", zipFile, err)
-		http.Error(w, "open zip "+err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errorPage("open zip failed", err.Error()))
 		return
 	}
 
-	log.Println("uploading")
-	// Upload zip or save to mounted volume
-	// The session the S3 Uploader will use
-	sess := session.Must(session.NewSession())
-
-	// Create an uploader with the session and default options
-	uploader := s3manager.NewUploader(sess)
-
-	// Upload the file to S3.
-	result, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String("gopip"),
-		Key:    aws.String(strings.TrimPrefix(zipFile, "/tmp/")),
-		Body:   f,
-		ACL:    aws.String("public-read"),
-	})
+	// Return file to user
+	content, err := ioutil.ReadAll(f)
 	if err != nil {
-		log.Printf("failed to upload file, %v\n", err)
-		http.Error(w, "upload "+err.Error(), http.StatusInternalServerError)
+		log.Printf("failed to read %q, %v\n", zipFile, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errorPage("read zip failed", err.Error()))
 		return
 	}
-	log.Printf("file uploaded to %s\n", result.Location)
 
-	w.Write(successPage(result.Location))
+	w.Header().Set("Content-Disposition", "attachment; filename=pack.zip")
+	w.Write(content)
+	log.Println("done")
 }
