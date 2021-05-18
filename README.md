@@ -20,20 +20,20 @@ for more details.
 But if you want to use it on a VM or local machine you can run: 
 
 ```
-docker run
-    -e AWS_REGION=<REGION>
-    -e AWS_ACCESS_KEY_ID=<KEY_ID>
-    -e AWS_SECRET_ACCESS_KEY=<KEY>
-    -p 8080:8080 <NAME>
+docker run -p 8080:8080 <NAME>
 ```
 
 This service is configured to quit after each request, for isolation needs, so
 using `--restart=always` is convenient.
 Make sure to properly pass the correct AWS credentials on the run part.
 
-For best results I recommend using a serverless/container orchestration platform, here I used Google Cloud Run.
+For best results I recommend using a serverless/container orchestration platform, here
+I used Google Cloud Run.
+
 
 ## Using
+
+You can use from your browser, and sending the package name in the form, or using *curl*:
 
 Make a HTTP request with the package name on the path:
 
@@ -41,7 +41,13 @@ Make a HTTP request with the package name on the path:
 curl localhost:8080/requests
 ```
 
-If successful the response contains a link to the S3 object, so browsers
+Or a *POST* with a form:
+
+```
+curl localhost:8080/package.zip -F package=requests
+```
+
+If successful the response contains a zip file, so browsers
 download it afterwards, for your convenience.
 
 
