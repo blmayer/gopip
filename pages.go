@@ -15,6 +15,15 @@ const start = `<!DOCTYPE html>
         footer {
             margin-top: 80px;
         }
+        @media (prefers-color-scheme: dark) {
+            body {
+              color: #eee;
+              background: #151515;
+            }
+            body a {
+              color: #809fff;
+            }
+        }
     </style>
     <body>`
 
