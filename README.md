@@ -25,7 +25,6 @@ docker run -p 8080:8080 <NAME>
 
 This service is configured to quit after each request, for isolation needs, so
 using `--restart=always` is convenient.
-Make sure to properly pass the correct AWS credentials on the run part.
 
 For best results I recommend using a serverless/container orchestration platform, here
 I used Google Cloud Run.
