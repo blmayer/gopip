@@ -75,7 +75,7 @@ const index = start + `
 
 func errorPage(err, detail string) []byte {
 	return []byte(start + `
-        <h3>Failure!</h3>
+        <h2>Failure!</h2>
         <details>
             <summary>` + err + `:</summary>
             <p>` + detail + `</p>
