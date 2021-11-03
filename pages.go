@@ -11,18 +11,31 @@ const start = `<!DOCTYPE html>
         body {
             margin: 60px auto;
             max-width: 800px;
+	    font-size: x-large;
         }
+	h2 {
+	    font-family: arial;
+    	    text-align: center;
+    	}
+	input {
+	    border-radius: 6px;
+    	    font-size: inherit;
+    	}
         footer {
             margin-top: 80px;
         }
         @media (prefers-color-scheme: dark) {
             body {
-              color: #eee;
-              background: #151515;
+                color: #eee;
+                background: #151515;
             }
             body a {
-              color: #809fff;
+                color: #809fff;
             }
+	    input {
+	        background-color: #343434;
+		color: #eee;
+	    }
         }
     </style>
     <body>`
@@ -39,7 +52,7 @@ const end = `
 </html>`
 
 const index = start + `
-        <h3>Python 3 package builder</h3>
+        <h2>Python 3 package builder</h2>
         <p>
             You can use the package name in the URL for simple names eg.
             <kbd>https://gopip-vjz2keikqq-uc.a.run.app/requests</kbd>
@@ -54,7 +67,7 @@ const index = start + `
             <em>Note:</em> Separate packages by a space character.
         </p>
         <form action="/package.zip" method="POST" download>
-            <label for="package">Insert package name(s):</label>
+            <label for="package">Name(s):</label>
             <input name="package" size="40" autofocus>
             <input type="submit">
         </form>
