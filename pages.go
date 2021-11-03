@@ -18,6 +18,7 @@ const start = `<!DOCTYPE html>
     	    text-align: center;
     	}
 	input {
+	    border: thin solid gray;
 	    border-radius: 6px;
     	    font-size: inherit;
     	}
