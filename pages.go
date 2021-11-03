@@ -45,7 +45,7 @@ const end = `
         <footer>
             <hr>
             <small>
-                The code for this project is available here:
+                This work is provided under the BSD 3-Clause License. The code for this project is available here:
                 <a href="https://github.com/blmayer/gopip">GitHub</a>.
             </small>
         </footer>
