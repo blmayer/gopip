@@ -62,7 +62,7 @@ const index = start + `
 	</p>
         <p>
             You can also use the package name in the URL for simple names
-	    e.g.: <kbd>https://gopip-vjz2keikqq-uc.a.run.app/requests</kbd>
+	    e.g.: <kbd>https://gopip.blmayer.dev/requests</kbd>
         </p>
         <br>
         <p>
