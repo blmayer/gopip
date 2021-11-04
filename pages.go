@@ -70,7 +70,7 @@ const index = start + `
         </p>
         <form action="/package.zip" method="POST" download>
             <label for="package">Name(s):</label>
-            <input name="package" size="40" autofocus>
+            <input name="package" size="40" autofocus required>
             <input type="submit">
         </form>
 ` + end
