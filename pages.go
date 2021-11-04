@@ -45,7 +45,8 @@ const end = `
         <footer>
             <hr>
             <small>
-                This work is provided under the BSD 3-Clause License. The code for this project is available here:
+                This work is provided under the BSD 3-Clause License.
+		The code for this project is available here:
                 <a href="https://github.com/blmayer/gopip">GitHub</a>.
             </small>
         </footer>
@@ -54,14 +55,14 @@ const end = `
 
 const index = start + `
         <h2>Python 3 package builder</h2>
+	<p>
+	    Use this web application to build and zip the python packages
+	    you want. After inserting the package(s) name(s) and clicking
+	    submit, you will be prompted to download the archive.
+	</p>
         <p>
-            You can use the package name in the URL for simple names eg.
-            <kbd>https://gopip-vjz2keikqq-uc.a.run.app/requests</kbd>
-        </p>
-        <p>
-            For complex package names like 
-            <kbd>git+https://github.com/httpie/httpie.git#egg=httpie</kbd>
-            use the form below.
+            You can also use the package name in the URL for simple names
+	    e.g.: <kbd>https://gopip-vjz2keikqq-uc.a.run.app/requests</kbd>
         </p>
         <br>
         <p>
