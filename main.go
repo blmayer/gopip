@@ -70,6 +70,14 @@ func install(w http.ResponseWriter, r *http.Request) {
 		case "/", "/index.html":
 			w.Write([]byte(index))
 			return
+		case "/robots.txt":
+			w.Write([]byte(`User-agent: *
+Disallow:
+Sitemap: https://gopip.blmayer.dev/sitemap.txt`))
+			return
+		case "/sitemap.txt":
+			w.Write([]byte(`index.html`))
+			return
 		}
 
 		// Get from URL
