@@ -11,7 +11,7 @@ const start = `<!DOCTYPE html>
         body {
             margin: 60px auto;
             max-width: 800px;
-	    font-size: x-large;
+	    font-size: larger;
         }
 	h2 {
 	    font-family: arial;
